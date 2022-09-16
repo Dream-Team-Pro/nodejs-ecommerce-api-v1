@@ -2,7 +2,11 @@ const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 dotenv.config({ path: "config.env" });
+const dbConnection = require('./config/database');
+const categoryRoute = require('./routes/categoryRoute');
 
+// Connect with db
+dbConnection();
 
 // express app
 const app = express();
@@ -15,28 +19,12 @@ if (process.env.NODE_ENV == "development") {
     console.log(`mode: ${process.env.NODE_ENV}`);
 }
 
+// Mount Routes
+app.use('/api/v1/categories', categoryRoute);
 
-
-// Routes
-app.post("/", (req, res) => {
-    const name = req.body.name;
-    console.log(`Post Name from body: ${name}`);
-
-    const newCategory = new CategoryModel({ name });
-    newCategory
-        .save()
-        .then((doc) => {
-            res.json(doc);
-        })
-        .catch((err) => {
-            res.json(err);
-        });
-});
-
-app.get("/", (req, res) => {
-    //res.send("Hi nodejs V1");
-    const name = req.body.name;
-    res.send(`Get Name from body: ${name}`);
+// Global Error handling Middleware
+app.use((err, req, res, nex) => {
+    res.status(500).json({ err });
 });
 
 const PORT = process.env.PORT || 8000;
